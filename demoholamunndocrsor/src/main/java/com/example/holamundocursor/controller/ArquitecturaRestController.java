@@ -2,8 +2,6 @@ package com.example.holamundocursor.controller;
 
 import com.example.holamundocursor.model.Fase;
 import com.example.holamundocursor.model.Tema;
-import com.example.holamundocursor.dto.FaseDTO;
-import com.example.holamundocursor.dto.TemaDTO;
 import com.example.holamundocursor.service.FaseService;
 import com.example.holamundocursor.service.TemaService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -27,8 +25,23 @@ public class ArquitecturaRestController {
 
     // Obtener todas las fases con sus temas
     @GetMapping("/fases")
-    public List<Fase> obtenerTodasLasFases() {
-        return faseService.obtenerTodasLasFases();
+    public List<Map<String, Object>> obtenerTodasLasFases() {
+        List<Fase> fases = faseService.obtenerTodasLasFases();
+        
+        // Crear fases sin relaciones para evitar StackOverflowError
+        return fases.stream()
+                .map(fase -> {
+                    Map<String, Object> faseMap = new HashMap<>();
+                    faseMap.put("id", fase.getId());
+                    faseMap.put("nombre", fase.getNombre());
+                    faseMap.put("descripcion", fase.getDescripcion());
+                    faseMap.put("orden", fase.getOrden());
+                    faseMap.put("activa", fase.getActiva());
+                    faseMap.put("fechaCreacion", fase.getFechaCreacion());
+                    faseMap.put("fechaActualizacion", fase.getFechaActualizacion());
+                    return faseMap;
+                })
+                .collect(Collectors.toList());
     }
 
     // Obtener todas las fases con estadísticas
@@ -42,9 +55,19 @@ public class ArquitecturaRestController {
         long temasCompletados = todosLosTemas.stream().filter(Tema::getCompletado).count();
         double progresoGeneral = totalTemas > 0 ? (double) temasCompletados / totalTemas * 100 : 0;
         
-        // Convertir a DTOs
-        List<FaseDTO> fasesDTO = fases.stream()
-                .map(this::convertirAFaseDTO)
+        // Crear fases sin relaciones para evitar StackOverflowError
+        List<Map<String, Object>> fasesSinRelaciones = fases.stream()
+                .map(fase -> {
+                    Map<String, Object> faseMap = new HashMap<>();
+                    faseMap.put("id", fase.getId());
+                    faseMap.put("nombre", fase.getNombre());
+                    faseMap.put("descripcion", fase.getDescripcion());
+                    faseMap.put("orden", fase.getOrden());
+                    faseMap.put("activa", fase.getActiva());
+                    faseMap.put("fechaCreacion", fase.getFechaCreacion());
+                    faseMap.put("fechaActualizacion", fase.getFechaActualizacion());
+                    return faseMap;
+                })
                 .collect(Collectors.toList());
         
         Map<String, Object> estadisticas = new HashMap<>();
@@ -52,7 +75,7 @@ public class ArquitecturaRestController {
         estadisticas.put("totalTemas", totalTemas);
         estadisticas.put("temasCompletados", temasCompletados);
         estadisticas.put("progresoGeneral", Math.round(progresoGeneral * 10.0) / 10.0);
-        estadisticas.put("fases", fasesDTO);
+        estadisticas.put("fases", fasesSinRelaciones);
         
         return estadisticas;
     }
@@ -66,7 +89,8 @@ public class ArquitecturaRestController {
     // Obtener una fase específica por ID
     @GetMapping("/fases/{id}")
     public Fase obtenerFasePorId(@PathVariable Long id) {
-        return faseService.obtenerFasePorId(id);
+        return faseService.obtenerFasePorId(id)
+                .orElseThrow(() -> new IllegalArgumentException("Fase no encontrada con ID: " + id));
     }
 
     // Obtener temas de una fase específica
@@ -75,39 +99,4 @@ public class ArquitecturaRestController {
         return temaService.obtenerTemasPorFase(id);
     }
     
-    // Métodos de conversión
-    private FaseDTO convertirAFaseDTO(Fase fase) {
-        FaseDTO dto = new FaseDTO();
-        dto.setId(fase.getId());
-        dto.setNombre(fase.getNombre());
-        dto.setDescripcion(fase.getDescripcion());
-        dto.setOrden(fase.getOrden());
-        dto.setActiva(fase.getActiva());
-        dto.setFechaCreacion(fase.getFechaCreacion());
-        dto.setFechaActualizacion(fase.getFechaActualizacion());
-        
-        // Convertir temas a DTOs
-        if (fase.getTemas() != null) {
-            List<TemaDTO> temasDTO = fase.getTemas().stream()
-                    .map(this::convertirATemaDTO)
-                    .collect(Collectors.toList());
-            dto.setTemas(temasDTO);
-        }
-        
-        return dto;
-    }
-    
-    private TemaDTO convertirATemaDTO(Tema tema) {
-        TemaDTO dto = new TemaDTO();
-        dto.setId(tema.getId());
-        dto.setTitulo(tema.getTitulo());
-        dto.setDescripcion(tema.getDescripcion());
-        dto.setContenido(tema.getContenido());
-        dto.setOrden(tema.getOrden());
-        dto.setCompletado(tema.getCompletado());
-        dto.setActivo(tema.getActivo());
-        dto.setFechaCreacion(tema.getFechaCreacion());
-        dto.setFechaActualizacion(tema.getFechaActualizacion());
-        return dto;
-    }
 }
