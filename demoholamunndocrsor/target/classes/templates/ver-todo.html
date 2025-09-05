@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org" th:replace="~{layout :: html}">
+<head>
+    <title>Ver Todo - Sistema de Arquitectura de Software</title>
+</head>
+<body>
+    <div th:fragment="content">
+        <!-- Header -->
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h1 class="display-4 fw-bold text-danger">
+                            <i class="bi bi-list-ul"></i> Ver Todo
+                        </h1>
+                        <p class="lead text-muted">
+                            Vista completa de todas las fases y sus temas
+                        </p>
+                    </div>
+                    <div class="text-end">
+                        <a href="/fase/nueva" class="btn btn-danger btn-lg me-2">
+                            <i class="bi bi-folder-plus"></i> Nueva Fase
+                        </a>
+                        <a href="/tema/nuevo" class="btn btn-outline-danger btn-lg">
+                            <i class="bi bi-file-plus"></i> Nuevo Tema
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Estadísticas generales -->
+        <div class="row mb-4">
+            <div class="col-md-3">
+                <div class="card text-center shadow-sm">
+                    <div class="card-body">
+                        <i class="bi bi-folder display-4 text-danger"></i>
+                        <h3 class="mt-2" th:text="${#lists.size(fases)}">0</h3>
+                        <p class="text-muted mb-0">Fases Totales</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card text-center shadow-sm">
+                    <div class="card-body">
+                        <i class="bi bi-book display-4 text-info"></i>
+                        <h3 class="mt-2" th:text="${totalTemas}">0</h3>
+                        <p class="text-muted mb-0">Temas Totales</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card text-center shadow-sm">
+                    <div class="card-body">
+                        <i class="bi bi-check-circle display-4 text-success"></i>
+                        <h3 class="mt-2" th:text="${temasCompletados}">0</h3>
+                        <p class="text-muted mb-0">Temas Completados</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card text-center shadow-sm">
+                    <div class="card-body">
+                        <i class="bi bi-graph-up display-4 text-warning"></i>
+                        <h3 class="mt-2" th:text="${progresoGeneral} + '%'">0%</h3>
+                        <p class="text-muted mb-0">Progreso General</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Lista completa de fases y temas -->
+        <div class="row">
+            <div class="col-12">
+                <div class="card shadow-sm">
+                    <div class="card-header bg-light">
+                        <h5 class="card-title mb-0">
+                            <i class="bi bi-list-check"></i> Todas las Fases y Temas
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div th:if="${fases.empty}" class="alert alert-info">
+                            No hay fases registradas. <a href="/fase/nueva" class="alert-link">Crea la primera fase</a> para empezar.
+                        </div>
+                        <div th:unless="${fases.empty}">
+                            <div class="accordion" id="fasesAccordion">
+                                <div class="accordion-item" th:each="fase : ${fases}">
+                                    <h2 class="accordion-header" th:id="'heading' + ${fase.id}">
+                                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" 
+                                                th:data-bs-target="'#collapse' + ${fase.id}" aria-expanded="false" 
+                                                th:aria-controls="'collapse' + ${fase.id}">
+                                            <span class="badge bg-danger me-2" th:text="${fase.orden}">1</span>
+                                            <span th:text="${fase.nombre}">Nombre de la Fase</span>
+                                            <span class="ms-auto">
+                                                <span class="badge bg-info me-2" th:text="${#lists.size(fase.temas)} + ' temas'">0 temas</span>
+                                                <span class="badge bg-success" th:text="${#lists.size(fase.temas.?[completado == true])} + ' completados'">0 completados</span>
+                                            </span>
+                                        </button>
+                                    </h2>
+                                    <div th:id="'collapse' + ${fase.id}" class="accordion-collapse collapse" 
+                                         th:aria-labelledby="'heading' + ${fase.id}" data-bs-parent="#fasesAccordion">
+                                        <div class="accordion-body">
+                                            <div class="row">
+                                                <div class="col-md-8">
+                                                    <h6 class="text-muted mb-3">Descripción:</h6>
+                                                    <p th:text="${fase.descripcion}" class="mb-3">Descripción de la fase.</p>
+                                                    
+                                                    <h6 class="text-muted mb-3">Temas:</h6>
+                                                    <div th:if="${fase.temas.empty}" class="alert alert-light">
+                                                        No hay temas en esta fase. <a th:href="@{/tema/nuevo}" class="alert-link">Añadir un tema</a>.
+                                                    </div>
+                                                    <div th:unless="${fase.temas.empty}">
+                                                        <div class="list-group list-group-flush">
+                                                            <div class="list-group-item" th:each="tema : ${fase.temas}"
+                                                                 th:classappend="${tema.completado} ? 'list-group-item-success' : ''">
+                                                                <div class="d-flex justify-content-between align-items-center">
+                                                                    <div class="d-flex align-items-center">
+                                                                        <i th:class="${tema.completado} ? 'bi bi-check-square-fill text-success me-2' : 'bi bi-square text-muted me-2'"></i>
+                                                                        <div>
+                                                                            <h6 class="mb-1" th:text="${tema.titulo}">Título del Tema</h6>
+                                                                            <p class="mb-1 text-muted" th:text="${tema.descripcion}">Descripción del tema</p>
+                                                                            <small class="text-muted">
+                                                                                Orden: <span th:text="${tema.orden}">1</span> | 
+                                                                                <span th:if="${tema.completado}" class="text-success">Completado</span>
+                                                                                <span th:unless="${tema.completado}" class="text-warning">Pendiente</span>
+                                                                            </small>
+                                                                        </div>
+                                                                    </div>
+                                                                    <div class="btn-group" role="group">
+                                                                        <a th:href="@{/tema/{id}/editar(id=${tema.id})}" class="btn btn-sm btn-outline-secondary">
+                                                                            <i class="bi bi-pencil"></i>
+                                                                        </a>
+                                                                        <a th:href="@{/fase/{faseId}/temas(faseId=${fase.id})}" class="btn btn-sm btn-outline-danger">
+                                                                            <i class="bi bi-eye"></i>
+                                                                        </a>
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <div class="col-md-4">
+                                                    <div class="card bg-light">
+                                                        <div class="card-body">
+                                                            <h6 class="card-title text-muted">Información de la Fase</h6>
+                                                            <ul class="list-unstyled mb-0">
+                                                                <li><strong>ID:</strong> <span th:text="${fase.id}">1</span></li>
+                                                                <li><strong>Orden:</strong> <span th:text="${fase.orden}">1</span></li>
+                                                                <li><strong>Estado:</strong> 
+                                                                    <span th:if="${fase.activa}" class="badge bg-success">Activa</span>
+                                                                    <span th:unless="${fase.activa}" class="badge bg-secondary">Inactiva</span>
+                                                                </li>
+                                                                <li><strong>Total Temas:</strong> <span th:text="${#lists.size(fase.temas)}">0</span></li>
+                                                                <li><strong>Completados:</strong> <span th:text="${#lists.size(fase.temas.?[completado == true])}">0</span></li>
+                                                                <li><strong>Creada:</strong> <span th:text="${#temporals.format(fase.fechaCreacion, 'dd/MM/yyyy HH:mm')}">01/01/2024</span></li>
+                                                                <li><strong>Actualizada:</strong> <span th:text="${#temporals.format(fase.fechaActualizacion, 'dd/MM/yyyy HH:mm')}">01/01/2024</span></li>
+                                                            </ul>
+                                                        </div>
+                                                    </div>
+                                                    <div class="mt-3">
+                                                        <a th:href="@{/fase/{id}/editar(id=${fase.id})}" class="btn btn-sm btn-outline-danger w-100 mb-2">
+                                                            <i class="bi bi-pencil"></i> Editar Fase
+                                                        </a>
+                                                        <a th:href="@{/fase/{id}/temas(id=${fase.id})}" class="btn btn-sm btn-danger w-100">
+                                                            <i class="bi bi-eye"></i> Ver Temas
+                                                        </a>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

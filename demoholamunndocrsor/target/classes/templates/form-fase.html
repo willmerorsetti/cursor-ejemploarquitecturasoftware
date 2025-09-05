@@ -1,0 +1,522 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org" th:replace="~{layout :: html}">
+<head>
+    <title th:text="${fase.id != null} ? 'Editar Fase - Sistema de Arquitectura de Software' : 'Nueva Fase - Sistema de Arquitectura de Software'">Formulario de Fase</title>
+</head>
+<body>
+    <div th:fragment="content">
+        <!-- Header -->
+        <div class="row mb-4">
+            <div class="col-12">
+                <h1 th:text="${fase.id != null} ? 'Editar Fase' : 'Nueva Fase'">
+                    <i class="bi bi-folder-plus"></i> Nueva Fase
+                </h1>
+                <p class="text-muted" th:text="${fase.id != null} ? 'Modifica los datos de la fase' : 'Crea una nueva fase para organizar tus temas de arquitectura de software'">
+                    Crea una nueva fase para organizar tus temas
+                </p>
+            </div>
+        </div>
+
+        <!-- Formulario -->
+        <div class="row">
+            <div class="col-md-8">
+                <div class="card shadow-sm">
+                    <div class="card-header bg-primary text-white">
+                        <h5 class="card-title mb-0">
+                            <i class="bi bi-clipboard-data"></i> 
+                            <span th:text="${fase.id != null} ? 'Información de la Fase' : 'Datos de la Nueva Fase'">Datos de la Nueva Fase</span>
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <form th:action="${fase.id != null} ? @{/fase/{id}/actualizar(id=${fase.id})} : @{/fase/crear}" 
+                              method="post" id="faseForm">
+                            
+                            <!-- Información Básica -->
+                            <div class="row">
+                                <div class="col-md-8">
+                                    <!-- Nombre de la fase -->
+                                    <div class="mb-3">
+                                        <label for="nombre" class="form-label fw-bold">
+                                            <i class="bi bi-tag text-primary"></i> Nombre de la Fase *
+                                        </label>
+                                        <input type="text" 
+                                               class="form-control form-control-lg" 
+                                               id="nombre" 
+                                               name="nombre" 
+                                               th:value="${fase.nombre}"
+                                               placeholder="Ej: Fundamentos de Arquitectura de Software"
+                                               required
+                                               maxlength="100"
+                                               autocomplete="off">
+                                        <div class="form-text">
+                                            <i class="bi bi-info-circle"></i> 
+                                            Nombre descriptivo de la fase (máximo 100 caracteres)
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="col-md-4">
+                                    <!-- Orden -->
+                                    <div class="mb-3">
+                                        <label for="orden" class="form-label fw-bold">
+                                            <i class="bi bi-sort-numeric-up text-primary"></i> Orden *
+                                        </label>
+                                        <input type="number" 
+                                               class="form-control form-control-lg" 
+                                               id="orden" 
+                                               name="orden" 
+                                               th:value="${fase.orden != null ? fase.orden : siguienteOrden}"
+                                               min="1"
+                                               max="999"
+                                               required>
+                                        <div class="form-text">
+                                            <i class="bi bi-info-circle"></i> 
+                                            Orden secuencial (1, 2, 3, etc.)
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Descripción -->
+                            <div class="mb-4">
+                                <label for="descripcion" class="form-label fw-bold">
+                                    <i class="bi bi-text-paragraph text-primary"></i> Descripción
+                                </label>
+                                <textarea class="form-control" 
+                                          id="descripcion" 
+                                          name="descripcion" 
+                                          rows="5"
+                                          placeholder="Describe detalladamente qué se aprenderá en esta fase, los objetivos principales y los temas que se cubrirán...">[[${fase.descripcion}]]</textarea>
+                                <div class="form-text">
+                                    <i class="bi bi-info-circle"></i> 
+                                    Descripción detallada de los objetivos y contenido de esta fase
+                                </div>
+                            </div>
+
+                            <!-- Estado de la Fase -->
+                            <div class="mb-4">
+                                <div class="card border-info">
+                                    <div class="card-header bg-light">
+                                        <h6 class="card-title mb-0">
+                                            <i class="bi bi-toggle-on text-info"></i> Estado de la Fase
+                                        </h6>
+                                    </div>
+                                    <div class="card-body">
+                                        <div class="form-check form-switch">
+                                            <input class="form-check-input" 
+                                                   type="checkbox" 
+                                                   id="activa" 
+                                                   name="activa" 
+                                                   th:checked="${fase.activa != null ? fase.activa : true}"
+                                                   value="true">
+                                            <label class="form-check-label fw-bold" for="activa">
+                                                <i class="bi bi-check-circle text-success"></i> Fase Activa
+                                            </label>
+                                            <div class="form-text">
+                                                <i class="bi bi-info-circle"></i> 
+                                                Las fases activas son visibles y pueden contener temas. 
+                                                Desactiva para ocultar temporalmente.
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Información del Sistema (solo para edición) -->
+                            <div th:if="${fase.id != null}" class="mb-4">
+                                <div class="card border-secondary">
+                                    <div class="card-header bg-light">
+                                        <h6 class="card-title mb-0">
+                                            <i class="bi bi-gear text-secondary"></i> Información del Sistema
+                                        </h6>
+                                    </div>
+                                    <div class="card-body">
+                                        <div class="row">
+                                            <div class="col-md-6">
+                                                <small class="text-muted">
+                                                    <strong>ID:</strong> <span th:text="${fase.id}"></span>
+                                                </small>
+                                            </div>
+                                            <div class="col-md-6">
+                                                <small class="text-muted">
+                                                    <strong>Fecha de Creación:</strong> 
+                                                    <span th:text="${#temporals.format(fase.fechaCreacion, 'dd/MM/yyyy HH:mm')}"></span>
+                                                </small>
+                                            </div>
+                                        </div>
+                                        <div class="row mt-2">
+                                            <div class="col-md-6">
+                                                <small class="text-muted">
+                                                    <strong>Última Actualización:</strong> 
+                                                    <span th:text="${#temporals.format(fase.fechaActualizacion, 'dd/MM/yyyy HH:mm')}"></span>
+                                                </small>
+                                            </div>
+                                            <div class="col-md-6">
+                                                <small class="text-muted">
+                                                    <strong>Temas Asociados:</strong> 
+                                                    <span th:text="${fase.temas != null ? #lists.size(fase.temas) : 0}"></span> temas
+                                                </small>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Botones de Acción -->
+                            <div class="d-flex gap-2 justify-content-end">
+                                <a href="/" class="btn btn-outline-secondary btn-lg">
+                                    <i class="bi bi-arrow-left"></i> Cancelar
+                                </a>
+                                <button type="submit" class="btn btn-primary btn-lg">
+                                    <i class="bi bi-check-circle"></i> 
+                                    <span th:text="${fase.id != null} ? 'Actualizar Fase' : 'Crear Fase'">Crear Fase</span>
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Panel de ayuda -->
+            <div class="col-md-4">
+                <!-- Guía de Campos -->
+                <div class="card shadow-sm">
+                    <div class="card-header bg-info text-white">
+                        <h5 class="card-title mb-0">
+                            <i class="bi bi-question-circle"></i> Guía de Campos
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="mb-3">
+                            <h6 class="text-primary">
+                                <i class="bi bi-tag"></i> Nombre de la Fase
+                            </h6>
+                            <p class="small text-muted mb-2">
+                                Campo obligatorio. Debe ser descriptivo y claro.
+                            </p>
+                            <div class="alert alert-light p-2 small">
+                                <strong>Ejemplos:</strong><br>
+                                • Fundamentos de Arquitectura<br>
+                                • Patrones de Diseño<br>
+                                • Microservicios
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <h6 class="text-primary">
+                                <i class="bi bi-sort-numeric-up"></i> Orden
+                            </h6>
+                            <p class="small text-muted mb-2">
+                                Define la secuencia de aprendizaje. Debe ser único.
+                            </p>
+                            <div class="alert alert-light p-2 small">
+                                <strong>Recomendación:</strong><br>
+                                Comienza con 1 y aumenta secuencialmente
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <h6 class="text-primary">
+                                <i class="bi bi-text-paragraph"></i> Descripción
+                            </h6>
+                            <p class="small text-muted mb-2">
+                                Campo opcional pero recomendado para claridad.
+                            </p>
+                        </div>
+
+                        <div class="mb-3">
+                            <h6 class="text-primary">
+                                <i class="bi bi-toggle-on"></i> Estado Activo
+                            </h6>
+                            <p class="small text-muted mb-2">
+                                Controla la visibilidad de la fase.
+                            </p>
+                            <div class="alert alert-light p-2 small">
+                                <strong>Activa:</strong> Visible y funcional<br>
+                                <strong>Inactiva:</strong> Ocultada temporalmente
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Ejemplos de Fases -->
+                <div class="card shadow-sm mt-3">
+                    <div class="card-header bg-success text-white">
+                        <h5 class="card-title mb-0">
+                            <i class="bi bi-lightbulb"></i> Ejemplos de Fases
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-12">
+                                <div class="list-group list-group-flush">
+                                    <div class="list-group-item border-0 px-0 py-2">
+                                        <div class="d-flex w-100 justify-content-between">
+                                            <h6 class="mb-1">1. Fundamentos</h6>
+                                            <small class="text-muted">Orden: 1</small>
+                                        </div>
+                                        <p class="mb-1 small text-muted">
+                                            Conceptos básicos de arquitectura de software
+                                        </p>
+                                    </div>
+                                    <div class="list-group-item border-0 px-0 py-2">
+                                        <div class="d-flex w-100 justify-content-between">
+                                            <h6 class="mb-1">2. Patrones</h6>
+                                            <small class="text-muted">Orden: 2</small>
+                                        </div>
+                                        <p class="mb-1 small text-muted">
+                                            Patrones de diseño y arquitectónicos
+                                        </p>
+                                    </div>
+                                    <div class="list-group-item border-0 px-0 py-2">
+                                        <div class="d-flex w-100 justify-content-between">
+                                            <h6 class="mb-1">3. Microservicios</h6>
+                                            <small class="text-muted">Orden: 3</small>
+                                        </div>
+                                        <p class="mb-1 small text-muted">
+                                            Arquitectura de microservicios
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Próximos Pasos -->
+                <div class="card shadow-sm mt-3">
+                    <div class="card-header bg-warning text-dark">
+                        <h5 class="card-title mb-0">
+                            <i class="bi bi-arrow-right-circle"></i> Próximos Pasos
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="timeline">
+                            <div class="timeline-item">
+                                <div class="timeline-marker bg-primary"></div>
+                                <div class="timeline-content">
+                                    <h6 class="timeline-title">1. Crear Fase</h6>
+                                    <p class="small text-muted">Completa este formulario</p>
+                                </div>
+                            </div>
+                            <div class="timeline-item">
+                                <div class="timeline-marker bg-secondary"></div>
+                                <div class="timeline-content">
+                                    <h6 class="timeline-title">2. Agregar Temas</h6>
+                                    <p class="small text-muted">Añade contenido específico</p>
+                                </div>
+                            </div>
+                            <div class="timeline-item">
+                                <div class="timeline-marker bg-secondary"></div>
+                                <div class="timeline-content">
+                                    <h6 class="timeline-title">3. Organizar</h6>
+                                    <p class="small text-muted">Ordena y estructura el contenido</p>
+                                </div>
+                            </div>
+                            <div class="timeline-item">
+                                <div class="timeline-marker bg-secondary"></div>
+                                <div class="timeline-content">
+                                    <h6 class="timeline-title">4. Aprender</h6>
+                                    <p class="small text-muted">Comienza tu camino hacia la arquitectura</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Validación en Tiempo Real -->
+                <div class="card shadow-sm mt-3">
+                    <div class="card-header bg-secondary text-white">
+                        <h5 class="card-title mb-0">
+                            <i class="bi bi-check-circle"></i> Validación
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div id="validation-status">
+                            <div class="d-flex align-items-center mb-2">
+                                <i class="bi bi-circle text-muted me-2"></i>
+                                <small>Nombre: <span class="text-muted">Pendiente</span></small>
+                            </div>
+                            <div class="d-flex align-items-center mb-2">
+                                <i class="bi bi-circle text-muted me-2"></i>
+                                <small>Orden: <span class="text-muted">Pendiente</span></small>
+                            </div>
+                            <div class="d-flex align-items-center">
+                                <i class="bi bi-circle text-muted me-2"></i>
+                                <small>Formulario: <span class="text-muted">Incompleto</span></small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Estilos personalizados -->
+    <style>
+        .timeline {
+            position: relative;
+            padding-left: 30px;
+        }
+        
+        .timeline-item {
+            position: relative;
+            margin-bottom: 20px;
+        }
+        
+        .timeline-marker {
+            position: absolute;
+            left: -35px;
+            top: 5px;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            border: 2px solid #fff;
+            box-shadow: 0 0 0 2px #dee2e6;
+        }
+        
+        .timeline-item:not(:last-child)::before {
+            content: '';
+            position: absolute;
+            left: -29px;
+            top: 17px;
+            width: 2px;
+            height: 20px;
+            background-color: #dee2e6;
+        }
+        
+        .timeline-title {
+            font-size: 0.9rem;
+            font-weight: 600;
+            margin-bottom: 2px;
+        }
+        
+        .form-control:focus {
+            border-color: #0d6efd;
+            box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, 0.25);
+        }
+        
+        .form-control-lg:focus {
+            border-color: #0d6efd;
+            box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, 0.25);
+        }
+        
+        .validation-success {
+            color: #198754 !important;
+        }
+        
+        .validation-error {
+            color: #dc3545 !important;
+        }
+        
+        .validation-pending {
+            color: #6c757d !important;
+        }
+    </style>
+
+    <!-- JavaScript para validación en tiempo real -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const nombreInput = document.getElementById('nombre');
+            const ordenInput = document.getElementById('orden');
+            const activaInput = document.getElementById('activa');
+            const form = document.getElementById('faseForm');
+            
+            // Elementos de validación
+            const nombreStatus = document.querySelector('#validation-status .d-flex:nth-child(1) i');
+            const nombreText = document.querySelector('#validation-status .d-flex:nth-child(1) span');
+            const ordenStatus = document.querySelector('#validation-status .d-flex:nth-child(2) i');
+            const ordenText = document.querySelector('#validation-status .d-flex:nth-child(2) span');
+            const formStatus = document.querySelector('#validation-status .d-flex:nth-child(3) i');
+            const formText = document.querySelector('#validation-status .d-flex:nth-child(3) span');
+            
+            // Función para actualizar el estado de validación
+            function updateValidationStatus() {
+                let isValid = true;
+                
+                // Validar nombre
+                if (nombreInput.value.trim().length >= 3) {
+                    nombreStatus.className = 'bi bi-check-circle text-success me-2';
+                    nombreText.textContent = 'Válido';
+                    nombreText.className = 'validation-success';
+                } else if (nombreInput.value.trim().length > 0) {
+                    nombreStatus.className = 'bi bi-exclamation-circle text-warning me-2';
+                    nombreText.textContent = 'Muy corto';
+                    nombreText.className = 'validation-error';
+                    isValid = false;
+                } else {
+                    nombreStatus.className = 'bi bi-circle text-muted me-2';
+                    nombreText.textContent = 'Pendiente';
+                    nombreText.className = 'validation-pending';
+                    isValid = false;
+                }
+                
+                // Validar orden
+                const ordenValue = parseInt(ordenInput.value);
+                if (ordenValue >= 1 && ordenValue <= 999) {
+                    ordenStatus.className = 'bi bi-check-circle text-success me-2';
+                    ordenText.textContent = 'Válido';
+                    ordenText.className = 'validation-success';
+                } else if (ordenInput.value.length > 0) {
+                    ordenStatus.className = 'bi bi-exclamation-circle text-warning me-2';
+                    ordenText.textContent = 'Inválido';
+                    ordenText.className = 'validation-error';
+                    isValid = false;
+                } else {
+                    ordenStatus.className = 'bi bi-circle text-muted me-2';
+                    ordenText.textContent = 'Pendiente';
+                    ordenText.className = 'validation-pending';
+                    isValid = false;
+                }
+                
+                // Estado del formulario
+                if (isValid && nombreInput.value.trim().length >= 3) {
+                    formStatus.className = 'bi bi-check-circle text-success me-2';
+                    formText.textContent = 'Listo para enviar';
+                    formText.className = 'validation-success';
+                } else {
+                    formStatus.className = 'bi bi-circle text-muted me-2';
+                    formText.textContent = 'Incompleto';
+                    formText.className = 'validation-pending';
+                }
+            }
+            
+            // Event listeners
+            nombreInput.addEventListener('input', updateValidationStatus);
+            ordenInput.addEventListener('input', updateValidationStatus);
+            activaInput.addEventListener('change', updateValidationStatus);
+            
+            // Validación inicial
+            updateValidationStatus();
+            
+            // Prevenir envío si el formulario no es válido
+            form.addEventListener('submit', function(e) {
+                if (nombreInput.value.trim().length < 3) {
+                    e.preventDefault();
+                    alert('El nombre de la fase debe tener al menos 3 caracteres.');
+                    nombreInput.focus();
+                    return false;
+                }
+                
+                const ordenValue = parseInt(ordenInput.value);
+                if (ordenValue < 1 || ordenValue > 999) {
+                    e.preventDefault();
+                    alert('El orden debe ser un número entre 1 y 999.');
+                    ordenInput.focus();
+                    return false;
+                }
+            });
+            
+            // Auto-generar orden si está vacío
+            ordenInput.addEventListener('blur', function() {
+                if (!this.value) {
+                    // Aquí podrías hacer una llamada AJAX para obtener el siguiente orden
+                    // Por ahora, usamos un valor por defecto
+                    this.value = 1;
+                    updateValidationStatus();
+                }
+            });
+        });
+    </script>
+</body>
+</html>

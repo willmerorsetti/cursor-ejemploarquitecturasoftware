@@ -1,0 +1,11 @@
+com/example/holamundocursor/DemoholamunndocrsorApplication.class
+com/example/holamundocursor/controller/ArquitecturaController.class
+com/example/holamundocursor/controller/ArquitecturaRestController$EstadisticasFase.class
+com/example/holamundocursor/controller/ArquitecturaRestController.class
+com/example/holamundocursor/repository/TemaRepository.class
+com/example/holamundocursor/model/Tema.class
+com/example/holamundocursor/model/Fase.class
+com/example/holamundocursor/repository/FaseRepository.class
+com/example/holamundocursor/service/TemaService.class
+com/example/holamundocursor/config/DataInitializer.class
+com/example/holamundocursor/service/FaseService.class

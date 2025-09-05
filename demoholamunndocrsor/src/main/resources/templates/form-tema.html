@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org" th:replace="~{layout :: html}">
+<head>
+    <title th:text="${tema.id != null} ? 'Editar Tema - Sistema de Arquitectura de Software' : 'Nuevo Tema - Sistema de Arquitectura de Software'">Formulario de Tema</title>
+</head>
+<body>
+    <div th:fragment="content">
+        <!-- Header -->
+        <div class="row mb-4">
+            <div class="col-12">
+                <h1 th:text="${tema.id != null} ? 'Editar Tema' : 'Nuevo Tema'">
+                    <i class="bi bi-book"></i> Nuevo Tema
+                </h1>
+                <p class="text-muted" th:text="${tema.id != null} ? 'Modifica los datos del tema' : 'Crea un nuevo tema para agregar a una fase'">
+                    Crea un nuevo tema para agregar a una fase
+                </p>
+            </div>
+        </div>
+
+        <!-- Formulario -->
+        <div class="row">
+            <div class="col-md-8">
+                <div class="card">
+                    <div class="card-body">
+                        <form th:action="${tema.id != null} ? @{/tema/{id}/actualizar(id=${tema.id})} : @{/tema/crear}" 
+                              method="post">
+                            
+                            <!-- Título del tema -->
+                            <div class="mb-3">
+                                <label for="titulo" class="form-label">
+                                    <i class="bi bi-bookmark"></i> Título del Tema *
+                                </label>
+                                <input type="text" 
+                                       class="form-control" 
+                                       id="titulo" 
+                                       name="titulo" 
+                                       th:value="${tema.titulo}"
+                                       placeholder="Ej: Introducción a los Patrones de Diseño"
+                                       required
+                                       maxlength="200">
+                                <div class="form-text">Título descriptivo del tema (máximo 200 caracteres)</div>
+                            </div>
+
+                            <!-- Descripción -->
+                            <div class="mb-3">
+                                <label for="descripcion" class="form-label">
+                                    <i class="bi bi-text-paragraph"></i> Descripción
+                                </label>
+                                <textarea class="form-control" 
+                                          id="descripcion" 
+                                          name="descripcion" 
+                                          rows="3"
+                                          placeholder="Breve descripción del tema...">[[${tema.descripcion}]]</textarea>
+                                <div class="form-text">Descripción breve del tema</div>
+                            </div>
+
+                            <!-- Contenido -->
+                            <div class="mb-3">
+                                <label for="contenido" class="form-label">
+                                    <i class="bi bi-file-text"></i> Contenido
+                                </label>
+                                <textarea class="form-control" 
+                                          id="contenido" 
+                                          name="contenido" 
+                                          rows="10"
+                                          placeholder="Contenido detallado del tema...">[[${tema.contenido}]]</textarea>
+                                <div class="form-text">Contenido detallado, notas, enlaces, etc.</div>
+                            </div>
+
+                            <!-- Fase -->
+                            <div class="mb-3">
+                                <label for="fase" class="form-label">
+                                    <i class="bi bi-folder"></i> Fase *
+                                </label>
+                                <select class="form-select" 
+                                        id="fase" 
+                                        name="fase.id" 
+                                        required>
+                                    <option value="">Selecciona una fase...</option>
+                                    <option th:each="fase : ${fases}" 
+                                            th:value="${fase.id}" 
+                                            th:text="${fase.nombre}"
+                                            th:selected="${tema.fase != null and tema.fase.id == fase.id}">
+                                        Fase
+                                    </option>
+                                </select>
+                                <div class="form-text">Fase a la que pertenece este tema</div>
+                            </div>
+
+                            <!-- Orden -->
+                            <div class="mb-3">
+                                <label for="orden" class="form-label">
+                                    <i class="bi bi-sort-numeric-up"></i> Orden *
+                                </label>
+                                <input type="number" 
+                                       class="form-control" 
+                                       id="orden" 
+                                       name="orden" 
+                                       th:value="${tema.orden != null ? tema.orden : siguienteOrden}"
+                                       min="1"
+                                       required>
+                                <div class="form-text">Orden del tema dentro de la fase</div>
+                            </div>
+
+                            <!-- Estado de completado (solo para edición) -->
+                            <div class="mb-3" th:if="${tema.id != null}">
+                                <div class="form-check">
+                                    <input class="form-check-input" 
+                                           type="checkbox" 
+                                           id="completado" 
+                                           name="completado" 
+                                           th:checked="${tema.completado}">
+                                    <label class="form-check-label" for="completado">
+                                        <i class="bi bi-check-circle"></i> Tema completado
+                                    </label>
+                                </div>
+                                <div class="form-text">Marca si has completado este tema</div>
+                            </div>
+
+                            <!-- Botones -->
+                            <div class="d-flex gap-2">
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="bi bi-check-circle"></i> 
+                                    <span th:text="${tema.id != null} ? 'Actualizar Tema' : 'Crear Tema'">Crear Tema</span>
+                                </button>
+                                <a href="/" class="btn btn-outline-secondary">
+                                    <i class="bi bi-arrow-left"></i> Cancelar
+                                </a>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Panel de ayuda -->
+            <div class="col-md-4">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="card-title mb-0">
+                            <i class="bi bi-info-circle"></i> Ayuda
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <h6>¿Qué es un Tema?</h6>
+                        <p class="small text-muted">
+                            Un tema es una unidad específica de conocimiento dentro de una fase. 
+                            Puede ser un concepto, una práctica, una herramienta, etc.
+                        </p>
+                        
+                        <h6>Ejemplos de Temas:</h6>
+                        <ul class="small">
+                            <li>Singleton Pattern</li>
+                            <li>Docker Fundamentals</li>
+                            <li>REST API Design</li>
+                            <li>Database Normalization</li>
+                            <li>Load Balancing</li>
+                        </ul>
+
+                        <h6>Consejos para el Contenido:</h6>
+                        <ul class="small">
+                            <li>Incluye enlaces útiles</li>
+                            <li>Agrega ejemplos de código</li>
+                            <li>Menciona recursos adicionales</li>
+                            <li>Incluye ejercicios prácticos</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Información de fases disponibles -->
+                <div class="card mt-3" th:if="${fases != null and !fases.empty}">
+                    <div class="card-header">
+                        <h5 class="card-title mb-0">
+                            <i class="bi bi-folder"></i> Fases Disponibles
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="list-group list-group-flush">
+                            <div class="list-group-item px-0 py-2" th:each="fase : ${fases}">
+                                <div class="d-flex w-100 justify-content-between">
+                                    <h6 class="mb-1" th:text="${fase.nombre}">Fase</h6>
+                                    <small th:text="'Orden: ' + ${fase.orden}">Orden</small>
+                                </div>
+                                <p class="mb-1 small text-muted" th:text="${fase.descripcion}">Descripción</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Próximos pasos -->
+                <div class="card mt-3">
+                    <div class="card-header">
+                        <h5 class="card-title mb-0">
+                            <i class="bi bi-lightbulb"></i> Próximos Pasos
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <p class="small text-muted">
+                            Después de crear el tema:
+                        </p>
+                        <ul class="small">
+                            <li>Podrás marcarlo como completado</li>
+                            <li>Aparecerá en la búsqueda</li>
+                            <li>Se mostrará en la fase correspondiente</li>
+                            <li>Contribuirá al progreso general</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

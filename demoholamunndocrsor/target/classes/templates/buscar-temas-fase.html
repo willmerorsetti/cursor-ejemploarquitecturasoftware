@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org" th:replace="~{layout :: html}">
+<head>
+    <title>Buscar Temas - <span th:text="${fase.nombre}">Fase</span></title>
+</head>
+<body>
+    <div th:fragment="content">
+        <!-- Header -->
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h2>
+                            <i class="bi bi-book"></i> Temas de: <span th:text="${fase.nombre}">Fase</span>
+                        </h2>
+                        <p class="text-muted" th:text="${fase.descripcion}">Descripción de la fase</p>
+                    </div>
+                    <a th:href="@{/fase/{id}/temas(id=${fase.id})}" class="btn btn-outline-primary">
+                        <i class="bi bi-arrow-left"></i> Volver a la Fase
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Búsqueda -->
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-body">
+                        <h5 class="card-title">
+                            <i class="bi bi-search"></i> Buscar Temas
+                        </h5>
+                        <form th:action="@{/fase/{faseId}/buscar-temas(faseId=${fase.id})}" method="get">
+                            <div class="input-group">
+                                <input type="text" class="form-control" name="titulo" 
+                                       th:value="${terminoBusqueda}" 
+                                       placeholder="Buscar temas por título...">
+                                <button class="btn btn-primary" type="submit">
+                                    <i class="bi bi-search"></i> Buscar
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Resultados -->
+        <div class="row">
+            <div class="col-12">
+                <div th:if="${terminoBusqueda}" class="alert alert-info">
+                    <i class="bi bi-info-circle"></i> 
+                    Resultados para: "<span th:text="${terminoBusqueda}"></span>"
+                </div>
+
+                <div th:if="${temas == null or temas.empty}" class="alert alert-warning">
+                    <i class="bi bi-exclamation-triangle"></i> 
+                    <span th:if="${terminoBusqueda}">No se encontraron temas que coincidan con la búsqueda.</span>
+                    <span th:unless="${terminoBusqueda}">No hay temas en esta fase.</span>
+                </div>
+
+                <div class="row" th:if="${temas != null and !temas.empty}">
+                    <div class="col-12" th:each="tema : ${temas}">
+                        <div class="card mb-3">
+                            <div class="card-body">
+                                <div class="d-flex justify-content-between align-items-start">
+                                    <div class="flex-grow-1">
+                                        <h5 class="card-title">
+                                            <i th:class="${tema.completado} ? 'bi bi-check-circle text-success' : 'bi bi-circle text-muted'"></i>
+                                            <span th:text="${tema.titulo}">Título del tema</span>
+                                            <span th:if="${tema.completado}" class="badge bg-success ms-2">Completado</span>
+                                        </h5>
+                                        <p class="card-text" th:text="${tema.descripcion}">Descripción del tema</p>
+                                        <small class="text-muted">
+                                            <i class="bi bi-sort-numeric-up"></i> Orden: <span th:text="${tema.orden}"></span>
+                                        </small>
+                                    </div>
+                                    <div class="btn-group" role="group">
+                                        <a th:href="@{/tema/{id}/editar(id=${tema.id})}" 
+                                           class="btn btn-outline-primary btn-sm">
+                                            <i class="bi bi-pencil"></i> Editar
+                                        </a>
+                                        <form th:action="@{/tema/{id}/completar(id=${tema.id})}" 
+                                              method="post" 
+                                              style="display: inline;">
+                                            <input type="hidden" name="completado" th:value="${!tema.completado}">
+                                            <button type="submit" class="btn btn-outline-success btn-sm">
+                                                <i th:class="${tema.completado} ? 'bi bi-arrow-counterclockwise' : 'bi bi-check'"></i>
+                                                <span th:text="${tema.completado} ? 'Desmarcar' : 'Completar'"></span>
+                                            </button>
+                                        </form>
+                                        <form th:action="@{/tema/{id}/eliminar(id=${tema.id})}" 
+                                              method="post" 
+                                              style="display: inline;"
+                                              onsubmit="return confirmarEliminacion('¿Estás seguro de eliminar este tema?')">
+                                            <button type="submit" class="btn btn-outline-danger btn-sm">
+                                                <i class="bi bi-trash"></i>
+                                            </button>
+                                        </form>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
+
+
+

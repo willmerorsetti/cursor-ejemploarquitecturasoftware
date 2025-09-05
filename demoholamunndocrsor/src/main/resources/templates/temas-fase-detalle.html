@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org" th:replace="~{layout :: html}">
+<head>
+    <title th:text="'Temas de ' + ${fase.nombre} + ' - Sistema de Arquitectura de Software'">Temas de la Fase</title>
+</head>
+<body>
+    <div th:fragment="content">
+        <!-- Header de la Fase -->
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <nav aria-label="breadcrumb">
+                            <ol class="breadcrumb">
+                                <li class="breadcrumb-item"><a href="/">Dashboard</a></li>
+                                <li class="breadcrumb-item active" th:text="${fase.nombre}">Nombre de la Fase</li>
+                            </ol>
+                        </nav>
+                        <h1 class="display-5 fw-bold text-primary">
+                            <i class="bi bi-folder"></i> <span th:text="${fase.nombre}">Nombre de la Fase</span>
+                        </h1>
+                        <p class="lead text-muted" th:text="${fase.descripcion}">Descripción de la fase...</p>
+                    </div>
+                    <div class="text-end">
+                        <a th:href="@{/tema/nuevo?faseId={id}(id=${fase.id})}" class="btn btn-primary btn-lg me-2">
+                            <i class="bi bi-plus-circle"></i> Nuevo Tema
+                        </a>
+                        <a th:href="@{/fase/{id}/editar(id=${fase.id})}" class="btn btn-outline-secondary btn-lg">
+                            <i class="bi bi-pencil"></i> Editar Fase
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Información de la Fase -->
+        <div class="row mb-4">
+            <div class="col-md-8">
+                <div class="card">
+                    <div class="card-header bg-primary text-white">
+                        <h5 class="card-title mb-0">
+                            <i class="bi bi-info-circle"></i> Información de la Fase
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <h6 class="text-primary">Detalles Generales</h6>
+                                <ul class="list-unstyled">
+                                    <li><strong>Orden:</strong> <span th:text="${fase.orden}">1</span></li>
+                                    <li><strong>Estado:</strong> 
+                                        <span th:if="${fase.activa}" class="badge bg-success">Activa</span>
+                                        <span th:unless="${fase.activa}" class="badge bg-secondary">Inactiva</span>
+                                    </li>
+                                    <li><strong>Fecha de Creación:</strong> 
+                                        <span th:text="${#temporals.format(fase.fechaCreacion, 'dd/MM/yyyy HH:mm')}"></span>
+                                    </li>
+                                </ul>
+                            </div>
+                            <div class="col-md-6">
+                                <h6 class="text-primary">Estadísticas</h6>
+                                <ul class="list-unstyled">
+                                    <li><strong>Total de Temas:</strong> <span th:text="${temas != null ? #lists.size(temas) : 0}">0</span></li>
+                                    <li><strong>Temas Completados:</strong> 
+                                        <span th:text="${temas != null ? #lists.size(temas.findAll(t -> t.completado)) : 0}">0</span>
+                                    </li>
+                                    <li><strong>Progreso:</strong> 
+                                        <span th:text="${temas != null ? (#lists.size(temas) > 0 ? (#lists.size(temas.findAll(t -> t.completado)) * 100 / #lists.size(temas)) : 0) : 0}">0</span>%
+                                    </li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card">
+                    <div class="card-header bg-success text-white">
+                        <h5 class="card-title mb-0">
+                            <i class="bi bi-graph-up"></i> Progreso de la Fase
+                        </h5>
+                    </div>
+                    <div class="card-body text-center">
+                        <div class="progress-circle mb-3">
+                            <div class="progress" style="height: 120px; width: 120px; border-radius: 50%; background: conic-gradient(#28a745 0deg, #28a745 var(--progress), #e9ecef var(--progress), #e9ecef 360deg); display: flex; align-items: center; justify-content: center; margin: 0 auto;">
+                                <div class="bg-white rounded-circle d-flex align-items-center justify-content-center" style="height: 100px; width: 100px;">
+                                    <span class="fw-bold fs-4 text-success" th:text="${temas != null ? (#lists.size(temas) > 0 ? (#lists.size(temas.findAll(t -> t.completado)) * 100 / #lists.size(temas)) : 0) : 0}">0</span>
+                                </div>
+                            </div>
+                        </div>
+                        <p class="text-muted mb-0">Completado</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Lista de Temas -->
+        <div class="row">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <h5 class="card-title mb-0">
+                            <i class="bi bi-list-ul"></i> Temas de la Fase
+                        </h5>
+                        <div class="btn-group" role="group">
+                            <button type="button" class="btn btn-outline-secondary btn-sm" onclick="toggleView('grid')">
+                                <i class="bi bi-grid-3x3"></i> Cuadrícula
+                            </button>
+                            <button type="button" class="btn btn-outline-secondary btn-sm active" onclick="toggleView('list')">
+                                <i class="bi bi-list"></i> Lista
+                            </button>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div id="temas-container">
+                            <!-- Vista de Lista -->
+                            <div id="list-view">
+                                <div class="list-group list-group-flush">
+                                    <div th:each="tema : ${temas}" class="list-group-item border-0 px-0 py-3">
+                                        <div class="row align-items-center">
+                                            <div class="col-md-1">
+                                                <div class="text-center">
+                                                    <span class="badge bg-primary rounded-pill fs-6" th:text="${tema.orden}">1</span>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-6">
+                                                <h6 class="mb-1 fw-bold" th:text="${tema.titulo}">Título del Tema</h6>
+                                                <p class="mb-1 text-muted small" th:text="${tema.descripcion}">Descripción del tema...</p>
+                                                <small class="text-muted">
+                                                    <i class="bi bi-calendar"></i> 
+                                                    Creado: <span th:text="${#temporals.format(tema.fechaCreacion, 'dd/MM/yyyy')}"></span>
+                                                </small>
+                                            </div>
+                                            <div class="col-md-2">
+                                                <div class="text-center">
+                                                    <span th:if="${tema.completado}" class="badge bg-success">Completado</span>
+                                                    <span th:unless="${tema.completado}" class="badge bg-warning">En Progreso</span>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-2">
+                                                <div class="text-center">
+                                                    <span th:if="${tema.activo}" class="badge bg-info">Activo</span>
+                                                    <span th:unless="${tema.activo}" class="badge bg-secondary">Inactivo</span>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-1">
+                                                <div class="btn-group-vertical btn-group-sm">
+                                                    <a th:href="@{/tema/{id}/editar(id=${tema.id})}" 
+                                                       class="btn btn-outline-primary btn-sm" 
+                                                       title="Editar tema">
+                                                        <i class="bi bi-pencil"></i>
+                                                    </a>
+                                                    <button type="button" 
+                                                            class="btn btn-outline-success btn-sm" 
+                                                            th:onclick="'marcarCompletado(' + ${tema.id} + ', ' + ${!tema.completado} + ')'"
+                                                            th:title="${tema.completado ? 'Marcar como incompleto' : 'Marcar como completado'}">
+                                                        <i th:class="${tema.completado ? 'bi bi-x-circle' : 'bi bi-check-circle'}"></i>
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Vista de Cuadrícula -->
+                            <div id="grid-view" style="display: none;">
+                                <div class="row">
+                                    <div th:each="tema : ${temas}" class="col-md-4 mb-3">
+                                        <div class="card h-100 shadow-sm">
+                                            <div class="card-header" th:classappend="${tema.completado ? 'bg-success text-white' : 'bg-primary text-white'}">
+                                                <div class="d-flex justify-content-between align-items-center">
+                                                    <h6 class="card-title mb-0" th:text="${tema.titulo}">Título del Tema</h6>
+                                                    <span class="badge bg-light text-dark" th:text="${tema.orden}">1</span>
+                                                </div>
+                                            </div>
+                                            <div class="card-body">
+                                                <p class="card-text small text-muted" th:text="${tema.descripcion}">Descripción del tema...</p>
+                                                <div class="row text-center">
+                                                    <div class="col-6">
+                                                        <div class="border-end">
+                                                            <h6 class="text-primary mb-0" th:text="${#temporals.format(tema.fechaCreacion, 'dd/MM')}">01/01</h6>
+                                                            <small class="text-muted">Creado</small>
+                                                        </div>
+                                                    </div>
+                                                    <div class="col-6">
+                                                        <h6 class="mb-0" th:classappend="${tema.completado ? 'text-success' : 'text-warning'}">
+                                                            <i th:class="${tema.completado ? 'bi bi-check-circle' : 'bi bi-clock'}"></i>
+                                                        </h6>
+                                                        <small class="text-muted" th:text="${tema.completado ? 'Completado' : 'En Progreso'}">Estado</small>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="card-footer bg-transparent">
+                                                <div class="btn-group w-100" role="group">
+                                                    <a th:href="@{/tema/{id}/editar(id=${tema.id})}" 
+                                                       class="btn btn-outline-primary btn-sm">
+                                                        <i class="bi bi-pencil"></i> Editar
+                                                    </a>
+                                                    <button type="button" 
+                                                            class="btn btn-outline-success btn-sm" 
+                                                            th:onclick="'marcarCompletado(' + ${tema.id} + ', ' + ${!tema.completado} + ')'">
+                                                        <i th:class="${tema.completado ? 'bi bi-x-circle' : 'bi bi-check-circle'}"></i>
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- JavaScript para alternar vistas y marcar completado -->
+    <script>
+        function toggleView(view) {
+            const listView = document.getElementById('list-view');
+            const gridView = document.getElementById('grid-view');
+            const buttons = document.querySelectorAll('.btn-group button');
+            
+            // Remover clase active de todos los botones
+            buttons.forEach(btn => btn.classList.remove('active'));
+            
+            if (view === 'grid') {
+                listView.style.display = 'none';
+                gridView.style.display = 'block';
+                buttons[0].classList.add('active');
+            } else {
+                listView.style.display = 'block';
+                gridView.style.display = 'none';
+                buttons[1].classList.add('active');
+            }
+        }
+
+        function marcarCompletado(temaId, completado) {
+            fetch(`/tema/${temaId}/completado`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ completado: completado })
+            })
+            .then(response => {
+                if (response.ok) {
+                    location.reload();
+                } else {
+                    alert('Error al actualizar el estado del tema');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Error al actualizar el estado del tema');
+            });
+        }
+    </script>
+
+    <!-- Estilos personalizados -->
+    <style>
+        .progress-circle {
+            --progress: 0deg;
+        }
+        
+        .card:hover {
+            transform: translateY(-2px);
+            transition: transform 0.2s ease-in-out;
+        }
+        
+        .btn-group-vertical .btn {
+            margin-bottom: 2px;
+        }
+        
+        .btn-group-vertical .btn:last-child {
+            margin-bottom: 0;
+        }
+    </style>
+</body>
+</html>
+
+
+

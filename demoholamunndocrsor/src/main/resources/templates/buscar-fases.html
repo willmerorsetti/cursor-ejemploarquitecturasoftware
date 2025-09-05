@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org" th:replace="~{layout :: html}">
+<head>
+    <title>Buscar Fases - Sistema de Arquitectura de Software</title>
+</head>
+<body>
+    <div th:fragment="content">
+        <!-- Header -->
+        <div class="row mb-4">
+            <div class="col-12">
+                <h1>
+                    <i class="bi bi-search"></i> Buscar Fases
+                </h1>
+                <p class="text-muted">Encuentra fases por nombre</p>
+            </div>
+        </div>
+
+        <!-- Formulario de búsqueda -->
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-body">
+                        <form action="/buscar-fases" method="get">
+                            <div class="row">
+                                <div class="col-md-8">
+                                    <input type="text" 
+                                           class="form-control form-control-lg" 
+                                           name="nombre" 
+                                           th:value="${terminoBusqueda}"
+                                           placeholder="Ingresa el nombre de la fase a buscar...">
+                                </div>
+                                <div class="col-md-4">
+                                    <button type="submit" class="btn btn-primary btn-lg w-100">
+                                        <i class="bi bi-search"></i> Buscar
+                                    </button>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Resultados -->
+        <div class="row" th:if="${fases != null}">
+            <div class="col-12">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h3>
+                        <i class="bi bi-folder"></i> Resultados
+                        <span th:if="${terminoBusqueda}" class="text-muted">
+                            para "<span th:text="${terminoBusqueda}"></span>"
+                        </span>
+                    </h3>
+                    <span class="badge bg-primary fs-6" th:text="${#lists.size(fases)} + ' fases encontradas'">
+                        0 fases encontradas
+                    </span>
+                </div>
+
+                <div th:if="${fases.empty}" class="alert alert-warning">
+                    <i class="bi bi-exclamation-triangle"></i> 
+                    <span th:if="${terminoBusqueda}">
+                        No se encontraron fases que coincidan con "<span th:text="${terminoBusqueda}"></span>"
+                    </span>
+                    <span th:unless="${terminoBusqueda}">
+                        No hay fases registradas.
+                    </span>
+                    <a href="/fase/nueva" class="alert-link">Crear nueva fase</a>
+                </div>
+
+                <div class="row" th:if="${!fases.empty}">
+                    <div class="col-md-6 col-lg-4 mb-4" th:each="fase : ${fases}">
+                        <div class="card fase-card h-100">
+                            <div class="card-header d-flex justify-content-between align-items-center">
+                                <h5 class="card-title mb-0" th:text="${fase.nombre}">Fase</h5>
+                                <span class="badge bg-primary" th:text="'Orden: ' + ${fase.orden}">Orden</span>
+                            </div>
+                            <div class="card-body">
+                                <p class="card-text" th:text="${fase.descripcion}">Descripción</p>
+                                
+                                <!-- Estadísticas de la fase -->
+                                <div class="mb-3">
+                                    <small class="text-muted">
+                                        <i class="bi bi-book"></i> 
+                                        <span th:text="${#lists.size(fase.temas)}">0</span> temas
+                                        <span th:if="${#lists.size(fase.temas) > 0}">
+                                            (<span th:text="${#lists.size(fase.temas.?[completado == true])}">0</span> completados)
+                                        </span>
+                                    </small>
+                                </div>
+
+                                <!-- Progreso de la fase -->
+                                <div th:if="${#lists.size(fase.temas) > 0}" class="mb-3">
+                                    <div class="progress" style="height: 8px;">
+                                        <div class="progress-bar" 
+                                             th:style="'width: ' + ${#lists.size(fase.temas.?[completado == true]) * 100.0 / #lists.size(fase.temas)} + '%'">
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Temas recientes -->
+                                <div th:if="${#lists.size(fase.temas) > 0}">
+                                    <h6 class="text-muted">Temas:</h6>
+                                    <ul class="list-unstyled">
+                                        <li th:each="tema : ${fase.temas}" 
+                                            th:class="${tema.completado} ? 'tema-item tema-completado' : 'tema-item'">
+                                            <i th:class="${tema.completado} ? 'bi bi-check-circle text-success' : 'bi bi-circle text-muted'"></i>
+                                            <span th:text="${tema.titulo}">Tema</span>
+                                        </li>
+                                    </ul>
+                                </div>
+                            </div>
+                            <div class="card-footer">
+                                <div class="btn-group w-100" role="group">
+                                    <a th:href="@{/fase/{id}/temas(id=${fase.id})}" 
+                                       class="btn btn-outline-primary btn-sm">
+                                        <i class="bi bi-eye"></i> Ver Temas
+                                    </a>
+                                    <a th:href="@{/fase/{id}/editar(id=${fase.id})}" 
+                                       class="btn btn-outline-secondary btn-sm">
+                                        <i class="bi bi-pencil"></i> Editar
+                                    </a>
+                                    <form th:action="@{/fase/{id}/eliminar(id=${fase.id})}" 
+                                          method="post" 
+                                          style="display: inline;"
+                                          onsubmit="return confirmarEliminacion('¿Estás seguro de eliminar esta fase y todos sus temas?')">
+                                        <button type="submit" class="btn btn-outline-danger btn-sm">
+                                            <i class="bi bi-trash"></i>
+                                        </button>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Acciones adicionales -->
+        <div class="row mt-4">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-body text-center">
+                        <h5 class="card-title">¿No encuentras lo que buscas?</h5>
+                        <p class="card-text">Crea una nueva fase o tema para comenzar a organizar tu aprendizaje.</p>
+                        <a href="/fase/nueva" class="btn btn-primary me-2">
+                            <i class="bi bi-folder-plus"></i> Nueva Fase
+                        </a>
+                        <a href="/tema/nuevo" class="btn btn-outline-primary">
+                            <i class="bi bi-file-plus"></i> Nuevo Tema
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
+
+
+

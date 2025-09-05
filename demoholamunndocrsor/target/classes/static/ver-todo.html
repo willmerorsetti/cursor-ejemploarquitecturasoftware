@@ -1,0 +1,362 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ver Todo - Sistema de Arquitectura de Software</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.7.2/font/bootstrap-icons.css" rel="stylesheet">
+    <style>
+        .loading {
+            text-align: center;
+            padding: 50px;
+        }
+        .error {
+            color: #dc3545;
+            background-color: #f8d7da;
+            border: 1px solid #f5c6cb;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 20px 0;
+        }
+        .stats-card {
+            transition: transform 0.2s;
+        }
+        .stats-card:hover {
+            transform: translateY(-5px);
+        }
+        .fase-card {
+            margin-bottom: 20px;
+        }
+        .tema-item {
+            border-left: 4px solid #dc3545;
+            padding-left: 15px;
+            margin-bottom: 10px;
+        }
+        .tema-completado {
+            border-left-color: #28a745;
+            background-color: #f8f9fa;
+        }
+    </style>
+</head>
+<body>
+    <!-- Navbar -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-danger">
+        <div class="container">
+            <a class="navbar-brand" href="/">
+                <i class="bi bi-diagram-3"></i> Arquitectura de Software
+            </a>
+            <div class="navbar-nav ms-auto">
+                <a class="nav-link" href="/">
+                    <i class="bi bi-house"></i> Inicio
+                </a>
+                <a class="nav-link active" href="/ver-todo.html">
+                    <i class="bi bi-list-ul"></i> Ver Todo
+                </a>
+                <a class="nav-link" href="/fase/nueva">
+                    <i class="bi bi-folder-plus"></i> Nueva Fase
+                </a>
+                <a class="nav-link" href="/tema/nuevo">
+                    <i class="bi bi-file-plus"></i> Nuevo Tema
+                </a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Contenido principal -->
+    <div class="container mt-4">
+        <!-- Header -->
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h1 class="display-4 fw-bold text-danger">
+                            <i class="bi bi-list-ul"></i> Ver Todo
+                        </h1>
+                        <p class="lead text-muted">
+                            Vista completa de todas las fases y sus temas
+                        </p>
+                    </div>
+                    <div class="text-end">
+                        <button class="btn btn-danger btn-lg me-2" onclick="cargarDatos()">
+                            <i class="bi bi-arrow-clockwise"></i> Actualizar
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Loading -->
+        <div id="loading" class="loading">
+            <div class="spinner-border text-danger" role="status">
+                <span class="visually-hidden">Cargando...</span>
+            </div>
+            <p class="mt-3">Cargando datos...</p>
+        </div>
+
+        <!-- Error -->
+        <div id="error" class="error" style="display: none;">
+            <h5><i class="bi bi-exclamation-triangle"></i> Error</h5>
+            <p id="error-message"></p>
+            <button class="btn btn-outline-danger" onclick="cargarDatos()">Reintentar</button>
+        </div>
+
+        <!-- Estadísticas -->
+        <div id="estadisticas" class="row mb-4" style="display: none;">
+            <div class="col-md-3">
+                <div class="card text-center shadow-sm stats-card">
+                    <div class="card-body">
+                        <i class="bi bi-folder display-4 text-danger"></i>
+                        <h3 class="mt-2" id="total-fases">0</h3>
+                        <p class="text-muted mb-0">Fases Totales</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card text-center shadow-sm stats-card">
+                    <div class="card-body">
+                        <i class="bi bi-book display-4 text-info"></i>
+                        <h3 class="mt-2" id="total-temas">0</h3>
+                        <p class="text-muted mb-0">Temas Totales</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card text-center shadow-sm stats-card">
+                    <div class="card-body">
+                        <i class="bi bi-check-circle display-4 text-success"></i>
+                        <h3 class="mt-2" id="temas-completados">0</h3>
+                        <p class="text-muted mb-0">Temas Completados</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card text-center shadow-sm stats-card">
+                    <div class="card-body">
+                        <i class="bi bi-graph-up display-4 text-warning"></i>
+                        <h3 class="mt-2" id="progreso-general">0%</h3>
+                        <p class="text-muted mb-0">Progreso General</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Lista de fases -->
+        <div id="contenido" style="display: none;">
+            <div class="row">
+                <div class="col-12">
+                    <div class="card shadow-sm">
+                        <div class="card-header bg-light">
+                            <h5 class="card-title mb-0">
+                                <i class="bi bi-list-check"></i> Todas las Fases y Temas
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <div id="lista-fases">
+                                <!-- Las fases se cargarán aquí dinámicamente -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="bg-light mt-5 py-4">
+        <div class="container text-center">
+            <p class="text-muted mb-0">
+                <i class="bi bi-code-slash"></i> Sistema de Gestión de Fases y Temas de Arquitectura de Software
+            </p>
+        </div>
+    </footer>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <!-- JavaScript -->
+    <script>
+        // Función para cargar datos desde la API
+        async function cargarDatos() {
+            const loading = document.getElementById('loading');
+            const error = document.getElementById('error');
+            const estadisticas = document.getElementById('estadisticas');
+            const contenido = document.getElementById('contenido');
+            
+            // Mostrar loading
+            loading.style.display = 'block';
+            error.style.display = 'none';
+            estadisticas.style.display = 'none';
+            contenido.style.display = 'none';
+            
+            try {
+                // Hacer petición a la API
+                const response = await fetch('/api/fases/estadisticas');
+                
+                if (!response.ok) {
+                    throw new Error(`Error HTTP: ${response.status}`);
+                }
+                
+                const data = await response.json();
+                
+                // Mostrar estadísticas
+                document.getElementById('total-fases').textContent = data.totalFases;
+                document.getElementById('total-temas').textContent = data.totalTemas;
+                document.getElementById('temas-completados').textContent = data.temasCompletados;
+                document.getElementById('progreso-general').textContent = data.progresoGeneral + '%';
+                
+                // Mostrar lista de fases
+                mostrarFases(data.fases);
+                
+                // Ocultar loading y mostrar contenido
+                loading.style.display = 'none';
+                estadisticas.style.display = 'block';
+                contenido.style.display = 'block';
+                
+            } catch (err) {
+                console.error('Error al cargar datos:', err);
+                loading.style.display = 'none';
+                error.style.display = 'block';
+                document.getElementById('error-message').textContent = 
+                    'Error al cargar los datos: ' + err.message;
+            }
+        }
+        
+        // Función para mostrar las fases
+        function mostrarFases(fases) {
+            const listaFases = document.getElementById('lista-fases');
+            
+            if (!fases || fases.length === 0) {
+                listaFases.innerHTML = `
+                    <div class="alert alert-info">
+                        No hay fases registradas. 
+                        <a href="/fase/nueva" class="alert-link">Crea la primera fase</a> para empezar.
+                    </div>
+                `;
+                return;
+            }
+            
+            let html = '<div class="accordion" id="fasesAccordion">';
+            
+            fases.forEach((fase, index) => {
+                const temasCompletados = fase.temas ? fase.temas.filter(tema => tema.completado).length : 0;
+                const totalTemas = fase.temas ? fase.temas.length : 0;
+                
+                html += `
+                    <div class="accordion-item">
+                        <h2 class="accordion-header" id="heading${fase.id}">
+                            <button class="accordion-button collapsed" type="button" 
+                                    data-bs-toggle="collapse" data-bs-target="#collapse${fase.id}" 
+                                    aria-expanded="false" aria-controls="collapse${fase.id}">
+                                <span class="badge bg-danger me-2">${fase.orden}</span>
+                                <span>${fase.nombre}</span>
+                                <span class="ms-auto">
+                                    <span class="badge bg-info me-2">${totalTemas} temas</span>
+                                    <span class="badge bg-success">${temasCompletados} completados</span>
+                                </span>
+                            </button>
+                        </h2>
+                        <div id="collapse${fase.id}" class="accordion-collapse collapse" 
+                             aria-labelledby="heading${fase.id}" data-bs-parent="#fasesAccordion">
+                            <div class="accordion-body">
+                                <div class="row">
+                                    <div class="col-md-8">
+                                        <h6 class="text-muted mb-3">Descripción:</h6>
+                                        <p class="mb-3">${fase.descripcion || 'Sin descripción'}</p>
+                                        
+                                        <h6 class="text-muted mb-3">Temas:</h6>
+                                        ${mostrarTemas(fase.temas)}
+                                    </div>
+                                    <div class="col-md-4">
+                                        <div class="card bg-light">
+                                            <div class="card-body">
+                                                <h6 class="card-title text-muted">Información de la Fase</h6>
+                                                <ul class="list-unstyled mb-0">
+                                                    <li><strong>ID:</strong> ${fase.id}</li>
+                                                    <li><strong>Orden:</strong> ${fase.orden}</li>
+                                                    <li><strong>Estado:</strong> 
+                                                        <span class="badge ${fase.activa ? 'bg-success' : 'bg-secondary'}">
+                                                            ${fase.activa ? 'Activa' : 'Inactiva'}
+                                                        </span>
+                                                    </li>
+                                                    <li><strong>Total Temas:</strong> ${totalTemas}</li>
+                                                    <li><strong>Completados:</strong> ${temasCompletados}</li>
+                                                    <li><strong>Creada:</strong> ${formatearFecha(fase.fechaCreacion)}</li>
+                                                    <li><strong>Actualizada:</strong> ${formatearFecha(fase.fechaActualizacion)}</li>
+                                                </ul>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
+            
+            html += '</div>';
+            listaFases.innerHTML = html;
+        }
+        
+        // Función para mostrar temas
+        function mostrarTemas(temas) {
+            if (!temas || temas.length === 0) {
+                return `
+                    <div class="alert alert-light">
+                        No hay temas en esta fase. 
+                        <a href="/tema/nuevo" class="alert-link">Añadir un tema</a>.
+                    </div>
+                `;
+            }
+            
+            let html = '<div class="list-group list-group-flush">';
+            
+            temas.forEach(tema => {
+                const claseCompletado = tema.completado ? 'list-group-item-success' : '';
+                const iconoCompletado = tema.completado ? 'bi-check-square-fill text-success' : 'bi-square text-muted';
+                const estadoCompletado = tema.completado ? 'Completado' : 'Pendiente';
+                const claseEstado = tema.completado ? 'text-success' : 'text-warning';
+                
+                html += `
+                    <div class="list-group-item ${claseCompletado}">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div class="d-flex align-items-center">
+                                <i class="bi ${iconoCompletado} me-2"></i>
+                                <div>
+                                    <h6 class="mb-1">${tema.titulo}</h6>
+                                    <p class="mb-1 text-muted">${tema.descripcion || 'Sin descripción'}</p>
+                                    <small class="text-muted">
+                                        Orden: ${tema.orden} | 
+                                        <span class="${claseEstado}">${estadoCompletado}</span>
+                                    </small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
+            
+            html += '</div>';
+            return html;
+        }
+        
+        // Función para formatear fechas
+        function formatearFecha(fecha) {
+            if (!fecha) return 'N/A';
+            return new Date(fecha).toLocaleDateString('es-ES', {
+                day: '2-digit',
+                month: '2-digit',
+                year: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit'
+            });
+        }
+        
+        // Cargar datos cuando se carga la página
+        document.addEventListener('DOMContentLoaded', function() {
+            cargarDatos();
+        });
+    </script>
+</body>
+</html>
+

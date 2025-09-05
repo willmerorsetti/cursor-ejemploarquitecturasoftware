@@ -1,0 +1,10 @@
+/Users/mac/Documents/cursor/demoholamunndocrsor/src/main/java/com/example/holamundocursor/DemoholamunndocrsorApplication.java
+/Users/mac/Documents/cursor/demoholamunndocrsor/src/main/java/com/example/holamundocursor/config/DataInitializer.java
+/Users/mac/Documents/cursor/demoholamunndocrsor/src/main/java/com/example/holamundocursor/controller/ArquitecturaController.java
+/Users/mac/Documents/cursor/demoholamunndocrsor/src/main/java/com/example/holamundocursor/controller/ArquitecturaRestController.java
+/Users/mac/Documents/cursor/demoholamunndocrsor/src/main/java/com/example/holamundocursor/model/Fase.java
+/Users/mac/Documents/cursor/demoholamunndocrsor/src/main/java/com/example/holamundocursor/model/Tema.java
+/Users/mac/Documents/cursor/demoholamunndocrsor/src/main/java/com/example/holamundocursor/repository/FaseRepository.java
+/Users/mac/Documents/cursor/demoholamunndocrsor/src/main/java/com/example/holamundocursor/repository/TemaRepository.java
+/Users/mac/Documents/cursor/demoholamunndocrsor/src/main/java/com/example/holamundocursor/service/FaseService.java
+/Users/mac/Documents/cursor/demoholamunndocrsor/src/main/java/com/example/holamundocursor/service/TemaService.java
