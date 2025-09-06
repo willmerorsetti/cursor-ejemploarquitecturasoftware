@@ -21,12 +21,10 @@ public class ArquitecturaController {
     private final FaseService faseService;
     private final TemaService temaService;
     
-    // Página principal - mostrar todas las fases con sus temas
+    // Página principal - redirigir automáticamente a ver-todo-working
     @GetMapping
-    public String index(Model model) {
-        List<Fase> fases = faseService.obtenerTodasLasFases();
-        model.addAttribute("fases", fases);
-        return "index";
+    public String index() {
+        return "redirect:/ver-todo-working";
     }
     
     // Ver todo - vista completa de todas las fases y temas
@@ -45,7 +43,7 @@ public class ArquitecturaController {
         model.addAttribute("temasCompletados", temasCompletados);
         model.addAttribute("progresoGeneral", Math.round(progresoGeneral * 10.0) / 10.0);
         
-        return "ver-todo";
+        return "ver-todo-working";
     }
     
     // Endpoint de debug para verificar datos
